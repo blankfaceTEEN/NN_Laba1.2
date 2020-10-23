@@ -2,37 +2,21 @@ import numpy as np
 import cv2
 import os
 
+
 # Подготовка картинок
-DIRPATH = 'train/'
+def preprocess(path, count):
+    files = os.listdir(path)
+    buffer_images = []
 
-files = os.listdir(DIRPATH)
-images = []
+    for file_name in files:
+        color_image = cv2.imread(path + file_name)
+        gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+        n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
+        buffer_images = np.append(buffer_images, n_image)
 
-for file_name in files:
-    color_image = cv2.imread(DIRPATH + file_name)
-    gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-    n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
-    images = np.append(images, n_image)
-
-images = images.reshape(14, 100)
-print(images)
-
-# Подготовка входныех параметров
-training_set_inputs = images
-training_set_outputs = np.array([[0],
-                                 [1],
-                                 [0],
-                                 [1],
-                                 [0],
-                                 [1],
-                                 [0],
-                                 [1],
-                                 [0],
-                                 [1],
-                                 [0],
-                                 [1],
-                                 [0],
-                                 [1]])
+    buffer_images = buffer_images.reshape(count, 100)
+    print(buffer_images)
+    return buffer_images
 
 
 # Нейросеть
@@ -58,32 +42,41 @@ class NeuralNetwork:
         return self.__sigmoid(np.dot(inputs, self.synaptic_weights))
 
 
+images = preprocess('train/', 14)
+
+# Подготовка входныех параметров
+training_set_inputs = images
+training_set_outputs = np.array([[0],
+                                 [1],
+                                 [0],
+                                 [1],
+                                 [0],
+                                 [1],
+                                 [0],
+                                 [1],
+                                 [0],
+                                 [1],
+                                 [0],
+                                 [1],
+                                 [0],
+                                 [1]])
+
 neural_network = NeuralNetwork()
-print("Начальные случайные веса: ")
+print("\nНачальные случайные веса: ")
 print(neural_network.synaptic_weights)
 
 neural_network.train(training_set_inputs, training_set_outputs, 10000)
 
-print("Веса после тренировки сети: ")
+print("\nВеса после тренировки сети: ")
 print(neural_network.synaptic_weights)
 
 # Проверка результатов
-NEW_DIRPATH = 'test/'
+test_images = preprocess('test/', 4)
 
-test_files = os.listdir(NEW_DIRPATH)
-test_images = []
-
-for file_name in test_files:
-    color_image = cv2.imread(NEW_DIRPATH + file_name)
-    gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
-    n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
-    test_images = np.append(test_images, n_image)
-
-test_images = test_images.reshape(4, 100)
-print("New situation:")
+print("\nНовые картинки:")
 print(test_images)
-print("Output data: ")
-print(neural_network.think(test_images)[0])
+print("\nРезультат нейросети: ")
+print('[%.8f]' % neural_network.think(test_images)[0])
 print('[%.8f]' % neural_network.think(test_images)[1])
-print(neural_network.think(test_images)[2])
-print(neural_network.think(test_images)[3])
+print('[%.8f]' % neural_network.think(test_images)[2])
+print('[%.8f]' % neural_network.think(test_images)[3])
