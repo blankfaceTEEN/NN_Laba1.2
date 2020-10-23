@@ -1,3 +1,6 @@
+from tkinter import *
+from tkinter import filedialog
+from PIL import ImageTk, Image
 import numpy as np
 import cv2
 import os
@@ -16,6 +19,18 @@ def preprocess(path, count):
 
     buffer_images = buffer_images.reshape(count, 100)
     print(buffer_images)
+    return buffer_images
+
+
+def preprocess2(path):
+    buffer_images = []
+
+    color_image = cv2.imread(path)
+    gray_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2GRAY)
+    n_image = np.around(np.divide(gray_image, 255.0), decimals=1)
+    buffer_images = np.append(buffer_images, n_image)
+
+    buffer_images = buffer_images.reshape(1, 100)
     return buffer_images
 
 
@@ -80,3 +95,38 @@ print('[%.8f]' % neural_network.think(test_images)[0])
 print('[%.8f]' % neural_network.think(test_images)[1])
 print('[%.8f]' % neural_network.think(test_images)[2])
 print('[%.8f]' % neural_network.think(test_images)[3])
+
+
+def openfile():
+    filepath = filedialog.askopenfilename(initialdir="test",
+                                          title="Тест",
+                                          filetypes=(("png файлы", "*.png"),
+                                                     ("png файлы", "*.png")))
+    test_images = preprocess2(filepath)
+    imgt = ImageTk.PhotoImage(Image.open(filepath))
+    panel.config(image=imgt)
+    panel.image = imgt
+    st = ""
+    if (neural_network.think(test_images)[0]) > 0.5:
+        st = "крестик"
+    else:
+        st = "нолик"
+    label2.config(text=st)
+    print("Изменил label2")
+
+
+window = Tk()
+window.title("Хисамов Искандер Лабораторная работа №1.2")
+window.geometry("550x350+700+400")
+button = Button(text="Загрузить картинку", command=openfile)
+button.pack(fill=BOTH, expand=0)
+frame = Frame(window, relief=RAISED, borderwidth=1)
+frame.pack(fill=BOTH, expand=True)
+img = ImageTk.PhotoImage(Image.open("test/test.png"))
+panel = Label(frame, image=img)
+panel.pack(side="bottom", fill="both", expand="yes")
+label1 = Label(text="На картинке: ")
+label1.pack(side=LEFT, padx=5, pady=5)
+label2 = Label(text="крестик")
+label2.pack(side=LEFT)
+window.mainloop()
